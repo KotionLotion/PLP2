@@ -30,8 +30,70 @@ void main(){
             writeln("Exiting the program, good day!");
             break;
         }
+        
+        checkProgram(c1);
 
+        writeln("\nPress ENTER key to continue...");
+        readln();
 
     }
    
+}
+
+bool checkProgram(string input){
+    // if (!input.startsWith("start")){
+    //     writeln("Invalid syntax! Must begin with \"start\"");
+    // }
+    // if (!input.endsWith("end")){
+    //     writeln("Invalid syntax! Must end with \"end\"");
+    // }
+
+    //adding spaces around commas and semicolons
+    // so something like "start bar a1,5;line a1,b1;grid a2 end" becomes 
+    input = input.replace(",", " , ");
+    input = input.replace(";", " ; ");
+
+    //next we split tokens meaning we get an array of strings wherever there is a whitespace.
+    //so in  "start bar a1 , 5 ; line a1 , b1 ; grid a2 end", index 0 = start, index 1 = bar, index 2 = a1, etc...
+    auto tokens = input.split();
+
+    size_t i = 0;
+
+    //Check for start
+    if (tokens.length == 0 || tokens[0] != "start"){
+        writeln("Invalid syntax! Must begin with \"start\"");
+        return false;
+    }
+
+    i++;
+
+    //check for atleast ONE command after start
+    if (i >= tokens.length || tokens[i] == "end"){
+        writeln("Uh oh! missing plot command after \"start\"");
+    }
+    
+    while (i < tokens.length){
+        //check end
+        if(tokens[i] == "end"){
+            i++;
+
+            if (i < tokens.length){
+                writeln("Invalid syntax! Unexpected text after \"end\"");
+                return false;
+            }
+
+            writeln("Valid start and end");
+            return true;
+        }
+        //Validation for commands bar, line, grid and fill
+
+        //TEMPORARY MOVE TO NETX TOKEN
+            i++;
+
+        //Check first coordinate
+    }
+
+    //if exit loop without end
+    writeln("Invalid syntax! Missing \"end\" at the end of input!");
+    return false;
 }
