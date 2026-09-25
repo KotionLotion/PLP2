@@ -24,6 +24,7 @@ void main(){
 
         
         writeln("Please enter a command or type \"STOP\" to exit: ");
+
         string c1 = readln().strip();
 
         if(c1 == "STOP"){
@@ -31,16 +32,46 @@ void main(){
             break;
         }
         
-        checkProgram(c1);
+        // checkProgram(c1);
 
-        writeln("\nPress ENTER key to continue...");
-        readln();
+        //tokenize input
+        string input = c1.replace(",", " , ");
+        input = input.replace(";", " ; ");
+
+        auto tokens = input.split();
+
+        if (checkProgram(tokens)){
+            if (deriv(tokens)){
+                writeln("\nPress ENTER to display the parse tree...");
+                readln();
+
+                //currently, extracts bar values and prints. graphics() extracts values and draws rectangle.
+                //We will use as the basis for building tree and/or extracting info into a data structure
+                // parse(tokens);
+
+                writeln("\nPress ENTER to display the graphical output...");
+                readln();
+
+                graphics(tokens);
+
+                writeln("\nPress ENTER to continue...");
+                readln();
+            }
+            else{
+                writeln("\nThe derivation failed. Invalid program.");
+                writeln("\nPress ENTER to continue...");
+                readln();
+            }
+        }
+
+        // writeln("\nPress ENTER key to continue...");
+        // readln();
 
     }
    
 }
 
-bool checkProgram(string input){
+bool checkProgram(string[] tokens){
     // if (!input.startsWith("start")){
     //     writeln("Invalid syntax! Must begin with \"start\"");
     // }
@@ -50,12 +81,12 @@ bool checkProgram(string input){
 
     //adding spaces around commas and semicolons
     // so something like "start bar a1,5;line a1,b1;grid a2 end" becomes 
-    input = input.replace(",", " , ");
-    input = input.replace(";", " ; ");
+    // input = input.replace(",", " , ");
+    // input = input.replace(";", " ; ");
 
     //next we split tokens meaning we get an array of strings wherever there is a whitespace.
     //so in  "start bar a1 , 5 ; line a1 , b1 ; grid a2 end", index 0 = start, index 1 = bar, index 2 = a1, etc...
-    auto tokens = input.split();
+    // auto tokens = input.split();
 
     size_t i = 0;
 
@@ -178,4 +209,318 @@ bool checkProgram(string input){
     //if exit loop without end
     writeln("Invalid syntax! Missing \"end\" at the end of input!");
     return false;
+}
+
+bool parser(string[] tokens){
+    //skips the first keyword at token [0] 'start'
+    size_t i = 1;
+
+    while (i < tokens.length){
+        if (tokens[i] == "end"){
+            return true;
+        }
+
+
+        //current token is command keyword
+        string command = tokens[i];
+
+        switch (command){
+            case "bar":
+                //move past bar
+                i++;
+
+                //extract coord
+                string coord = tokens[i];
+                i++;
+
+                //move past comma
+                i++;
+
+                //get width
+                string width = tokens[i];
+                i++;
+
+                //values for derivation
+                writeln("Command: ", command);
+                writeln("Coords: ", coord);
+                writeln("Width: ", width);
+
+                break;
+            
+            //case "line":
+            //case "grid":
+            //case "fill":
+
+            default:
+                writeln("Unknown command: ", command);
+                return false;
+        }
+
+        //skip semi if present
+        if (i < tokens.length && tokens[i] == ";"){
+                i++;
+        }
+    }
+
+    return false;
+}
+
+// Helper
+string repLMost(string input, string target, string repl){
+    size_t pos = 0;
+
+    //left most offurence
+    while(pos + target.length <= input.length){
+        if (input[pos .. pos + target.length] == target){
+            return input[0 .. pos] ~ repl ~ input[pos + target.length .. $];
+        }
+
+        pos++;
+    }
+
+    //no target found
+    return input;
+}
+
+//Derivation
+bool deriv(string[] tokens){
+    writeln("\nLEFTMOST DERIVATION:");
+
+    string result = "<graph>";
+    writeln(result);
+
+    // Step 1 Expand <graph>
+    result = "start <plot_stmts> end";
+    writeln(result);
+
+    // Collect the plot commands from the input where each plot is stored as its own arary of tokens
+    string[][] plots;
+
+    //skips start
+    size_t i = 1; 
+
+    while (i < tokens.length && tokens[i] != "end"){
+        string[] currentPlot;
+
+        while (i < tokens.length && tokens[i] != ";" && tokens[i] != "end"){
+            currentPlot ~= tokens[i];
+            i++;
+        }
+
+        plots ~= [currentPlot];
+
+        if (i < tokens.length && tokens[i] == ";"){
+            i++;
+        }
+    }
+
+    if (plots.length == 0){
+        writeln("Derivation failed: no plot commands.");
+        return false;
+    }
+
+    // step 2 expand <plot_stmts> using a recursive rule
+    for (size_t j = 1; j < plots.length; j++){
+        result = repLMost( result, "<plot_stmts>", "<plot> ; <plot_stmts>");
+        writeln(result);
+    }
+
+    //Expand the final <plot_stmts> into <plot>.
+    result = repLMost(result, "<plot_stmts>", "<plot_stmt>");
+    writeln(result);
+
+    result = repLMost(result, "<plot_stmt>", "<plot>");
+    writeln(result);
+
+    // Step 3 Expand each plot from L - R
+    foreach (plot; plots){
+        if (plot.length == 0){
+            writeln("Derivation failed: empty plot.");
+            return false;
+        }
+
+        string command = plot[0];
+
+        switch (command){
+            case "bar":{
+                // Input tokens:
+                // plot[0] = "bar"
+                // plot[1] = coordinate, e.g. "b4"
+                // plot[2] = ","
+                // plot[3] = width, e.g. "2"
+
+                if (plot.length != 4){
+                    writeln("Derivation failed: invalid bar.");
+                    return false;
+                }
+
+                string coord = plot[1];
+                string width = plot[3];
+
+                // Expand the leftmost <plot>.
+                result = repLMost(result, "<plot>", "bar <x><y>,<y>");
+                writeln(result);
+
+                // Expand the leftmost <x>.
+                result = repLMost( result, "<x>", coord[0 .. 1]);
+                writeln(result);
+
+                // Expand the leftmost <y>.
+                result = repLMost( result, "<y>", coord[1 .. 2]);
+                writeln(result);
+
+                // Expand the remaining <y> into the width.
+                result = repLMost( result, "<y>", width);
+                writeln(result);
+
+                break;
+            }
+
+            case "line": {
+                writeln("Line derivation not implemented yet.");
+                return false;
+            }
+
+            case "grid": {
+                writeln("Grid derivation not implemented yet.");
+                return false;
+            }
+
+            case "fill": {
+                writeln("Fill derivation not implemented yet.");
+                return false;
+            }
+
+            default: {
+                writeln("Unknown command in derivation: ", command);
+                return false;
+            }
+        }
+    }
+
+    // The derivation should match the input sentence.
+    writeln("\nSuccessfully derived the input sentence!");
+    writeln("Generated sentence: ", result);
+
+    return true;
+}
+
+//graphics (visual?)
+void graphics(string[] tokens)
+{
+    writeln("\nGRAPHICAL OUTPUT:");
+
+    //skip start
+    size_t i = 1;
+
+    while (i < tokens.length && tokens[i] != "end"){
+        string command = tokens[i];
+
+        switch (command){
+            case "bar":
+            {
+                // Extract bar values from the tokens.
+                string coord = tokens[i + 1];
+                int width = to!int(tokens[i + 3]);
+
+                int x = coord[0] - 'a';
+                int y = coord[1] - '0';
+
+                drawBar(x, y, width);
+
+                // Move past: bar, coordinate, comma, width
+                i += 4;
+
+                break;
+            }
+
+            case "line": {
+                writeln("Line graphics not implemented yet.");
+                return;
+            }
+
+            case "grid": {
+                writeln("Grid graphics not implemented yet.");
+                return;
+            }
+
+            case "fill": {
+                writeln("Fill graphics not implemented yet.");
+                return;
+            }
+
+            default: {
+                writeln("Unknown graphics command: ", command);
+                return;
+            }
+        }
+
+        // Skip the semicolon between plots
+        if (i < tokens.length && tokens[i] == ";"){
+            i++;
+        }
+    }
+}
+
+void drawBar(int x, int y, int width){
+    /*  Each letter represents one x-coordinate unit:
+        a = 0, b = 1, c = 2, ..., j = 9.
+        The bottom of every bar is at y = 0.
+        The top-left corner is (x, y).
+        The width is supplied by the user */
+
+    int left = x;
+    int right = x + width;
+    int bottom = 0;
+    int top = y;
+
+    // Allow the drawing canvas to extend beyond j
+    // when the bar's width requires it.
+    int maxX = right;
+
+    writeln("\nBar rectangle:");
+    writeln("Top-left: (", left, ", ", top, ")");
+    writeln("Bottom-right: (", right, ", ", bottom, ")");
+
+    // Draw from the highest y to 0
+    for (int row = top; row >= bottom; row--){
+        // Print the y label.
+        write(row, " |");
+
+        for (int col = 0; col <= maxX; col++){
+            bool isLeft = col == left;
+            bool isRight = col == right;
+            bool isTop = row == top;
+            bool isBottom = row == bottom;
+
+            if ((isLeft || isRight) && (isTop || isBottom)){
+                write("+");
+            }
+            else if ((isTop || isBottom) && col > left && col < right){
+                write("-");
+            }
+            else if ((isLeft || isRight) && row > bottom && row < top){
+                write("|");
+            }
+            else{
+                write(" ");
+            }
+        }
+
+        writeln();
+    }
+
+    //print x labels.
+    write("   ");
+
+    for (int col = 0; col <= maxX; col++){
+        if (col < 10){
+            write(cast(char)('a' + col));
+        }
+        else{
+            write(col);
+        }
+    }
+
+    writeln();
 }
