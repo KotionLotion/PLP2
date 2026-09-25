@@ -1,0 +1,4 @@
+@"
+*.exe
+*.obj
+"@ | Set-Content .gitignore
