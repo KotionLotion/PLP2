@@ -5,7 +5,9 @@
   <img src="https://img.shields.io/badge/VS%20Code-D--Code-blue?logo=visualstudiocode&logoColor=white" alt="D-Code Extension">
 </a>
 Makes it so that D language keywords are highlighted instead of appearing plain white.
+
 ---
+
 # How to Run Your Program
 To run your D file, navigate to the directory containing your file and open a terminal.
 
