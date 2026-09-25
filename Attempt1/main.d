@@ -70,6 +70,7 @@ bool checkProgram(string input){
     //check for atleast ONE command after start
     if (i >= tokens.length || tokens[i] == "end"){
         writeln("Uh oh! missing plot command after \"start\"");
+        return false;
     }
     
     while (i < tokens.length){
@@ -82,15 +83,96 @@ bool checkProgram(string input){
                 return false;
             }
 
-            writeln("Valid start and end");
+            writeln("Valid syntax!");
             return true;
         }
-        //Validation for commands bar, line, grid and fill
 
-        //TEMPORARY MOVE TO NETX TOKEN
+        //Validation for commands bar, line, grid and fill
+        string command = tokens [i];
+
+        if (command != "bar" && command != "line" && command != "grid" && command != "fill"){
+            writeln("Invalid command: ", command);
+            writeln("accepted commands: bar, line, grid & fill");
+            return false;
+        }
+
+        //Next token (coods)
             i++;
 
         //Check first coordinate
+        if (i >= tokens.length){
+            writeln("Missing coordinate after '", command, "'");
+            return false;
+        }
+
+        string coord = tokens[i];
+
+        if (coord.length != 2 || coord[0] < 'a' || coord[0] > 'j' || coord[1] < '0' || coord[1] > '9'){
+            writeln("Invalid coord '", coord, "'. Expected a letter a-j followed by a digit 0-9");
+            return false;
+        }
+
+        i++;
+
+        //Bar
+        if (command == "bar"){
+            if (i >= tokens.length || tokens[i] != ","){
+                writeln("Uh oh! Missing a comma in bar command");
+                return false;
+            }
+
+            i++;
+
+            if (i >= tokens.length || tokens[i].length != 1 || tokens[i][0] < '0' || tokens [i][0] > '9'){
+                writeln("Invalid bar width! Expected digit between 0-9");
+                return false;
+            }
+
+            i++;
+        }
+
+        // Lnie
+        else if (command == "line"){
+            if (i >= tokens.length || tokens [i] != ","){
+                writeln("Uh oh! Missing comma in line command");
+                return false;
+            }
+
+            i++;
+
+           // Check second coordinate
+            if (i >= tokens.length){
+                writeln("Missing second coordinate in line command");
+                return false;
+            }
+
+            string coord2 = tokens[i];
+
+            if (coord2.length != 2 || coord2[0] < 'a' || coord2[0] > 'j' || coord2[1] < '0' || coord2[1] > '9')
+            {
+                writeln("Invalid second coordinate: ", coord2);
+                writeln("Expected a letter a-j followed by a digit 0-9");
+                return false;
+            }
+
+            i++;
+        }
+
+        //check for separator or end
+        if (i < tokens.length && tokens[i] != ";" && tokens[i] != "end"){
+            writeln("Error! Expected ';' or 'end' after command");
+            return false;
+        }
+
+        //consume semicolon
+        if (i < tokens.length && tokens[i] == ";"){
+            i++;
+
+            if (i >= tokens.length || tokens[i] == "end" || tokens[i] == ";"){
+                writeln("Error! Missing command after semicolon");
+                return false;
+            }
+        }
     }
 
     //if exit loop without end
