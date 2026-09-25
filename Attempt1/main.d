@@ -289,7 +289,7 @@ bool deriv(string[] tokens){
     string result = "<graph>";
     writeln(result);
 
-    // Step 1 Expand <graph>
+    //step 1 Expand <graph>
     result = "start <plot_stmts> end";
     writeln(result);
 
@@ -325,7 +325,7 @@ bool deriv(string[] tokens){
         writeln(result);
     }
 
-    //Expand the final <plot_stmts> into <plot>.
+    //expand the final <plot_stmts> into <plot>
     result = repLMost(result, "<plot_stmts>", "<plot_stmt>");
     writeln(result);
 
@@ -398,7 +398,7 @@ bool deriv(string[] tokens){
         }
     }
 
-    // The derivation should match the input sentence.
+    // The derivation should match the input sentence
     writeln("\nSuccessfully derived the input sentence!");
     writeln("Generated sentence: ", result);
 
@@ -462,65 +462,70 @@ void graphics(string[] tokens)
     }
 }
 
-void drawBar(int x, int y, int width){
-    /*  Each letter represents one x-coordinate unit:
-        a = 0, b = 1, c = 2, ..., j = 9.
-        The bottom of every bar is at y = 0.
-        The top-left corner is (x, y).
-        The width is supplied by the user */
 
+void drawBar(int x, int y, int width){
     int left = x;
     int right = x + width;
+
     int bottom = 0;
     int top = y;
 
-    // Allow the drawing canvas to extend beyond j
-    // when the bar's width requires it.
-    int maxX = right;
-
-    writeln("\nBar rectangle:");
-    writeln("Top-left: (", left, ", ", top, ")");
-    writeln("Bottom-right: (", right, ", ", bottom, ")");
-
-    // Draw from the highest y to 0
-    for (int row = top; row >= bottom; row--){
-        // Print the y label.
-        write(row, " |");
-
-        for (int col = 0; col <= maxX; col++){
-            bool isLeft = col == left;
-            bool isRight = col == right;
-            bool isTop = row == top;
-            bool isBottom = row == bottom;
-
-            if ((isLeft || isRight) && (isTop || isBottom)){
-                write("+");
-            }
-            else if ((isTop || isBottom) && col > left && col < right){
-                write("-");
-            }
-            else if ((isLeft || isRight) && row > bottom && row < top){
-                write("|");
-            }
-            else{
-                write(" ");
-            }
-        }
-
-        writeln();
+    // Check coordinate boundary
+    if (right > 9){
+        writeln("Error: Bar exceeds the maximum x-coordinate (j).");
+        return;
     }
 
-    //print x labels.
+    //each x-coordinate gets 4 character spaces
+    int spacing = 4;
+
+    int leftPos = left * spacing;
+    int rightPos = right * spacing;
+    int maxX = right * spacing;
+
+    writeln("\nBAR GRAPH");
+    writeln("Top-left: ", cast(char)('a' + left), top);
+    writeln("Bottom-right: ", cast(char)('a' + right), bottom);
+    writeln();
+
+    // Draw the rectangle from top to bottom
+    for (int row = top; row >= bottom; row--){
+        // create a row with enough space for all columns
+        char[] graphRow = new char[maxX + 1];
+
+        foreach (ref ch; graphRow){
+            ch = ' ';
+        }
+
+        // Draw vertical sids
+        if (row > bottom && row < top){
+            graphRow[leftPos] = '|';
+            graphRow[rightPos] = '|';
+        }
+
+        // Draw top and bottom side
+        if (row == top || row == bottom){
+            foreach (col; leftPos .. rightPos + 1)
+            {
+                graphRow[col] = '-';
+            }
+
+            graphRow[leftPos] = '+';
+            graphRow[rightPos] = '+';
+        }
+
+        //Print y-coordinate label
+        write(row, " | ");
+
+        // Print the spaced graph row
+        writeln(graphRow);
+    }
+
+    //print x labels, spaced evenly
     write("   ");
 
-    for (int col = 0; col <= maxX; col++){
-        if (col < 10){
-            write(cast(char)('a' + col));
-        }
-        else{
-            write(col);
-        }
+    for (int col = 0; col <= right; col++){
+        write("  ", cast(char)('a' + col), " ");
     }
-
     writeln();
 }
