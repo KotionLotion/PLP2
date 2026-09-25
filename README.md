@@ -17,12 +17,6 @@ dmd file_name.d
 Replace `file_name.d` with the name of your D file.
 
 ### 2. Run the program
-**Windows:**
-```powershell
-.\file_name.exe
-```
-
-**Linux:**
 ```bash
 ./file_name
 ```
