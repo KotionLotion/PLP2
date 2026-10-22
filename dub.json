@@ -1,0 +1,31 @@
+{
+    "name": "plp2",
+    "description": "CMPS3111 Programming Project 2 - a graph plotting language with a leftmost derivation, a parse tree and a graphical output",
+    "targetType": "executable",
+    "sourcePaths": ["source"],
+    "mainSourceFile": "source/main.d",
+    "targetName": "plp2",
+    "architectures": ["x86_64"],
+    "dependencies": {
+        "raylib-d": "~>6.2.0"
+    },
+    "libs": [
+        "raylib"
+    ],
+    "lflags": [
+        "/DEFAULTLIB:user32.lib",
+        "/DEFAULTLIB:shcore.lib"
+    ],
+    "configurations": [
+        {
+            "name": "application",
+            "targetName": "plp2",
+            "sourcePaths": ["source"]
+        },
+        {
+            "name": "unittest",
+            "targetName": "plp2-test-application",
+            "sourcePaths": ["source", "tests"]
+        }
+    ]
+}
